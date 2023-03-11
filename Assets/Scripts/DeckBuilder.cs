@@ -18,6 +18,7 @@ public class DeckBuilder
         public Sprite spriteFace;       //Sprite to hold the card face
         public Sprite spriteBack;       //Sprite to hold the card back
         public GameObject card;         //GameObject to contain card and perform game logic on
+        public SpriteRenderer r;
 
         //Assignment Constructor
         public Card(int s, int v, Sprite sp)
@@ -29,7 +30,7 @@ public class DeckBuilder
 
             //Init the card, add a sprite renderer and set it to not active.
             card = new GameObject(spriteFace.name);
-            SpriteRenderer r = card.AddComponent<SpriteRenderer>();
+            r = card.AddComponent<SpriteRenderer>();
             r.sprite = spriteBack;
             card.transform.position = new Vector2(0, -6.0f);
             //card.SetActive(false);
