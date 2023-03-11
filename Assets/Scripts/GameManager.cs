@@ -50,7 +50,8 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-
+    /*
+    //privateNoid DealDeck
     private void dealBoard()
     {
 
@@ -76,12 +77,12 @@ public class GameManager : MonoBehaviour
         }
         boardHolder.position = new Vector2(-3.3f, -3.5f);
     }
-
+    */
     // Start is called before the first frame update
     void Start()
     {
         initializeBoard();
-        dealBoard();
+        //dealBoard();
     }
     // Update is called once per frame
     void Update()

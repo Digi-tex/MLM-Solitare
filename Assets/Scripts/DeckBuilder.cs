@@ -13,16 +13,26 @@ public class DeckBuilder
 
     public class Card
     {
-        public int suit;            //Club 0 , diamond 1, heart 2, spade 3
-        public int value;           //Value ace 1, 2-10, jack 11, queen 12, king 13
-        public Sprite sprite;       //Sprite to hold the card face
+        public int suit;                //Club 0 , diamond 1, heart 2, spade 3
+        public int value;               //Value ace 1, 2-10, jack 11, queen 12, king 13
+        public Sprite spriteFace;       //Sprite to hold the card face
+        public Sprite spriteBack;       //Sprite to hold the card back
+        public GameObject card;         //GameObject to contain card and perform game logic on
 
         //Assignment Constructor
         public Card(int s, int v, Sprite sp)
         {
             suit = s;
             value = v;
-            sprite = sp;
+            spriteFace = sp;
+            spriteBack = Resources.Load<Sprite>("Sprites/Standard 52 Cards/solitaire/individuals/card back/card_back");
+
+            //Init the card, add a sprite renderer and set it to not active.
+            card = new GameObject(spriteFace.name);
+            SpriteRenderer r = card.AddComponent<SpriteRenderer>();
+            r.sprite = spriteBack;
+            card.transform.position = new Vector2(0, -6.0f);
+            //card.SetActive(false);
         }
     }
 
@@ -32,8 +42,10 @@ public class DeckBuilder
     {
         deck = new List<Card>();    //Init the deck of card objects
 
-        string[] values = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13" };
+        string[] values = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13" }; //Just in case we had to use symbols, this was an array to hold the card values
 
+        //Loop through and create the deck of cards. 
+        //Depending on the suit denoted by the first for loop, we grab the card faces from different folders
         for (int i = 0; i < 4; i++)
         {
             for (int j = 0; j < 13; j++)
@@ -57,7 +69,7 @@ public class DeckBuilder
             }
         }
 
-        Shuffle();
+        Shuffle();  //Shuffle the deck once it has been created.
     }
 
     //A method to shuffle the deck which is passed in by reference and shuffles in place.
