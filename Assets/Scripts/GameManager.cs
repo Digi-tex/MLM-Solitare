@@ -64,7 +64,7 @@ public class GameManager : MonoBehaviour
         {
             for(int j = 0; j < numCards - i; j++) 
             {
-                cardPositions.Add(new Vector3((horStep * j) + (offset*i), vertStep * i, 0));
+                cardPositions.Add(new Vector3((horStep * j) + (offset*i)-3, (vertStep * i)-4, 0));
             }
         }
 
@@ -99,6 +99,7 @@ public class GameManager : MonoBehaviour
     {
         switch(currentState)
         {
+            //Deal the deck onto the board
             case 0:
                 {
                     if (cardforAnimation < 0)
@@ -107,9 +108,29 @@ public class GameManager : MonoBehaviour
                         changeGameState(1);
                         break;
                     }
-                    StartCoroutine(MoveObject(drawPile.deck[cardforAnimation].card, deckPosition, velocity, 0.5f, 40));
+                    StartCoroutine(MoveObject(drawPile.deck[cardforAnimation].card, deckPosition, velocity, 0.2f, 120));
                     if (drawPile.deck[cardforAnimation].card.transform.position == deckPosition)
                         cardforAnimation--;
+                    break;
+                }
+            //Deal the board
+            case 1:
+                {
+                    if (cardforAnimation >= totalCards)
+                    {
+                        cardforAnimation = 0;
+                        changeGameState(2);
+
+                        for(int i = 0; i < totalCards; i++)
+                        {
+                            boardCards.Add(drawPile.deck[0]);
+                            drawPile.deck.RemoveAt(0);
+                        }
+                        break;
+                    }
+                    StartCoroutine(MoveObject(drawPile.deck[cardforAnimation].card, cardPositions[cardforAnimation], velocity, 0.5f, 20));
+                    if (drawPile.deck[cardforAnimation].card.transform.position == cardPositions[cardforAnimation])
+                        cardforAnimation++;
                     break;
                 }
         }
