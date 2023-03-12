@@ -6,11 +6,6 @@ using UnityEngine;
 
 public class DeckBuilder
 {
-    public DeckBuilder()
-    {
-        InitializeDeck();
-    }
-
     public class Card
     {
         public int suit;                //Club 0 , diamond 1, heart 2, spade 3
@@ -19,6 +14,7 @@ public class DeckBuilder
         public Sprite spriteBack;       //Sprite to hold the card back
         public GameObject card;         //GameObject to contain card and perform game logic on
         public SpriteRenderer r;
+        
 
         //Assignment Constructor
         public Card(int s, int v, Sprite sp)
@@ -37,12 +33,16 @@ public class DeckBuilder
         }
     }
 
-    public List<Card> deck;         //An array of card objects that will act as the deck for this game
 
-    public void InitializeDeck()
+    public List<Card> deck;             //An array of card objects that will act as the deck for this game
+    public DeckBuilder()
     {
-        deck = new List<Card>();    //Init the deck of card objects
+        deck = new List<Card>();        //Init the deck of card objects
+    }
 
+
+    public void Build52CardDeck()
+    {
         string[] values = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13" }; //Just in case we had to use symbols, this was an array to hold the card values
 
         //Loop through and create the deck of cards. 
@@ -70,11 +70,11 @@ public class DeckBuilder
             }
         }
 
-        Shuffle();  //Shuffle the deck once it has been created.
+        ShuffleDeck();  //Shuffle the deck once it has been created.
     }
 
     //A method to shuffle the deck which is passed in by reference and shuffles in place.
-    public void Shuffle()
+    public void ShuffleDeck()
     {
         var rng = new System.Random();
         int n = deck.Count;
@@ -84,6 +84,28 @@ public class DeckBuilder
             Card temp = deck[n];
             deck[n] = deck[k];
             deck[k] = temp;
+        }
+    }
+
+    public void AddCard(Card card)
+    {
+        deck.Add(card);
+    }
+
+    public void RemoveCard()
+    {
+        deck.RemoveAt(0);
+    }
+
+    public void FlipCard(Card card)
+    {
+        if (card.r.sprite.name != card.spriteFace.name)
+        {
+            card.r.sprite = card.spriteFace;
+        }
+        else
+        {
+            card.r.sprite = card.spriteBack;
         }
     }
 }

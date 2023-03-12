@@ -10,9 +10,9 @@ public class GameManager : MonoBehaviour
 
     public DeckBuilder drawPile;                //The deck and subsequent draw pile for the game
 
-    public List<DeckBuilder.Card> boardCards;   //An list of card objects that are in play on the game board
-    public List<DeckBuilder.Card> discardCards; //An list of card objects that are discarded
-    public List<DeckBuilder.Card> spentCards;   //A list of card objects that are used and removed from play
+    public DeckBuilder boardCards;              //An list of card objects that are in play on the game board
+    public DeckBuilder discardCards;            //An list of card objects that are discarded
+    public DeckBuilder spentCards;              //A list of card objects that are used and removed from play
 
     private List<Vector3> cardPositions;        //A list to hold the Vector2 locations of where the cards will be on the board
     private Vector3 deckPosition;               //Location of the deck
@@ -38,17 +38,19 @@ public class GameManager : MonoBehaviour
     private void initializeBoard()
     {
         drawPile = new DeckBuilder();                   //Build a new deck of cards.
+        drawPile.Build52CardDeck();
         cardforAnimation = drawPile.deck.Count -1;
-        boardCards = new List<DeckBuilder.Card>();      //Create a list to hold the cards currently on the board in play
-        discardCards = new List<DeckBuilder.Card>();    //Create a list to hold cards currently in the discard pile
-        spentCards = new List<DeckBuilder.Card>();      //Create a list to hold cards that have been matched and removed from play
+
+        boardCards = new DeckBuilder();                 //Create a list to hold the cards currently on the board in play
+        discardCards = new DeckBuilder();               //Create a list to hold cards currently in the discard pile
+        spentCards = new DeckBuilder();                 //Create a list to hold cards that have been matched and removed from play
 
         boardHolder = new GameObject("Board").transform;//Create a transform to hold all of the card game objects currenly in the boardCards list
         boardHolder.position = new Vector3(-3.3f, -3.5f, 0);
 
-        deckPosition = new Vector3(-5, 2, 0);              //Specify location of deck
-        discardPosition = new Vector3(-4, 2, 0);           //Specify location of discard pile
-        spentPosition = new Vector3(5, 2, 0);              //Specify location of spent pile
+        deckPosition = new Vector3(-5, 2, 0);           //Specify location of deck
+        discardPosition = new Vector3(-4, 2, 0);        //Specify location of discard pile
+        spentPosition = new Vector3(5, 2, 0);           //Specify location of spent pile
         
 
         cardPositions = new List<Vector3>();            //Create a list that holds all of the positions of where boardCards can be played
@@ -82,6 +84,8 @@ public class GameManager : MonoBehaviour
             yield return 0;
         }
     }
+
+
 
     private void changeGameState(int i)
     {
@@ -123,14 +127,25 @@ public class GameManager : MonoBehaviour
 
                         for(int i = 0; i < totalCards; i++)
                         {
-                            boardCards.Add(drawPile.deck[0]);
-                            drawPile.deck.RemoveAt(0);
+                            boardCards.AddCard(drawPile.deck[0]);
+                            drawPile.RemoveCard();
                         }
                         break;
                     }
                     StartCoroutine(MoveObject(drawPile.deck[cardforAnimation].card, cardPositions[cardforAnimation], velocity, 0.5f, 20));
                     if (drawPile.deck[cardforAnimation].card.transform.position == cardPositions[cardforAnimation])
+                    {
+                        if (cardforAnimation < 7)
+                        {
+                            drawPile.FlipCard(drawPile.deck[cardforAnimation]);
+                        }
                         cardforAnimation++;
+                    }
+                    break;
+                }
+            //Wait for 
+            case 2:
+                {
                     break;
                 }
         }
