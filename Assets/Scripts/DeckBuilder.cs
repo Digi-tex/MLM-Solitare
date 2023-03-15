@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.Networking.UnityWebRequest;
 
 
 public class DeckBuilder
@@ -15,6 +16,10 @@ public class DeckBuilder
         public GameObject card;         //GameObject to contain card and perform game logic on
         public SpriteRenderer r;
         
+        public BoxCollider2D col;
+        public List<Collider2D> colResults;
+        public ContactFilter2D colFilter;
+
 
         //Assignment Constructor
         public Card(int s, int v, Sprite sp)
@@ -29,6 +34,14 @@ public class DeckBuilder
             r = card.AddComponent<SpriteRenderer>();
             r.sprite = spriteBack;
             card.transform.position = new Vector2(0, -6.0f);
+
+            col = card.AddComponent<BoxCollider2D>();
+            col.gameObject.layer = 3;
+
+            colResults = new List<Collider2D>();
+            colFilter = new ContactFilter2D();
+            colFilter.layerMask = 3;
+
             //card.SetActive(false);
         }
     }
@@ -107,5 +120,25 @@ public class DeckBuilder
         {
             card.r.sprite = card.spriteBack;
         }
+    }
+
+    public void CheckCollision()
+    {
+        foreach(Card card in deck)
+        {
+            if (card.col.OverlapCollider(card.colFilter, card.colResults) > 2)
+            {
+                if (card != deck[deck.Count - 1])
+                    card.r.sprite = card.spriteBack;
+                else if(card.col.OverlapCollider(card.colFilter, card.colResults) == 2)
+                    card.r.sprite = card.spriteFace;           
+            }
+            else
+            {
+                card.r.sprite = card.spriteFace;
+            }
+
+        }
+
     }
 }

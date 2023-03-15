@@ -73,6 +73,8 @@ public class GameManager : MonoBehaviour
         for(int j = 0; j < drawPile.deck.Count; j++)
         {
             drawPile.deck[j].r.sortingOrder = currentLayerOrder--;
+
+            
         }
     }
     
@@ -141,11 +143,13 @@ public class GameManager : MonoBehaviour
                         }
                         cardforAnimation++;
                     }
+
                     break;
                 }
             //Wait for 
             case 2:
                 {
+                    boardCards.CheckCollision();
                     break;
                 }
         }
