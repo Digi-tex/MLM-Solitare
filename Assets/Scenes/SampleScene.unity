@@ -312,6 +312,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20f212a99679f414b9b68efb18a92c1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  card: {fileID: 2669266218570741461, guid: a8d2d8b105e66d04a95540ab40f7fdf0, type: 3}
+  drawCards: []
+  boardCards: []
+  discardCards: []
+  spentCards: []
 --- !u!1 &733957937
 GameObject:
   m_ObjectHideFlags: 0

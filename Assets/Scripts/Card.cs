@@ -10,38 +10,41 @@ public class Card : MonoBehaviour
     public int value;               //Value ace 1, 2-10, jack 11, queen 12, king 13
     public Sprite spriteFace;       //Sprite to hold the card face
     public Sprite spriteBack;       //Sprite to hold the card back
-    public GameObject card;         //GameObject to contain card and perform game logic on
-    public SpriteRenderer r;
-    public bool clicked;
 
-    public BoxCollider2D col;
-    public List<Collider2D> colResults;
     public ContactFilter2D colFilter;
 
+    public Collider2D[] colResults = new Collider2D[100];
 
-    //Assignment Constructor
-    public Card(int s, int v, Sprite sp)
+    public IEnumerator MoveObject(Vector3 end, Vector3 vel, float smoothTime, float speed)
     {
-        suit = s;
-        value = v;
-        spriteFace = sp;
-        spriteBack = Resources.Load<Sprite>("Sprites/Standard 52 Cards/solitaire/individuals/card back/card_back");
-        clicked = false;
+        while (this.transform.position != end)
+        {
+            this.transform.position = Vector3.SmoothDamp(this.transform.position, end, ref vel, smoothTime, speed);
+            yield return 0;
+        }
+    }
 
-        //Init the card, add a sprite renderer and set it to not active.
-        card = new GameObject(spriteFace.name);
-        card.AddComponent<ClickManager>();
-        r = card.AddComponent<SpriteRenderer>();
-        r.sprite = spriteBack;
-        card.transform.position = new Vector2(0, -6.0f);
+    public void FlipCard()
+    {
+        if (this.GetComponent<SpriteRenderer>().sprite.name != this.GetComponent<Card>().spriteFace.name)
+        {
+            this.GetComponent<SpriteRenderer>().sprite = this.GetComponent<Card>().spriteFace;
+        }
+        else
+        {
+            this.GetComponent<SpriteRenderer>().sprite = this.GetComponent<Card>().spriteBack;
+        }
+    }
 
-        col = card.AddComponent<BoxCollider2D>();
-        col.gameObject.layer = 3;
-
-        colResults = new List<Collider2D>();
+    void Start()
+    {
         colFilter = new ContactFilter2D();
         colFilter.layerMask = 3;
+    }
 
-        //card.SetActive(false);
+    // Update is called once per frame
+    void Update()
+    {
+
     }
 }
