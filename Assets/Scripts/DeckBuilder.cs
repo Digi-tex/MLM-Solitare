@@ -7,45 +7,6 @@ using static UnityEngine.Networking.UnityWebRequest;
 
 public class DeckBuilder
 {
-    public class Card
-    {
-        public int suit;                //Club 0 , diamond 1, heart 2, spade 3
-        public int value;               //Value ace 1, 2-10, jack 11, queen 12, king 13
-        public Sprite spriteFace;       //Sprite to hold the card face
-        public Sprite spriteBack;       //Sprite to hold the card back
-        public GameObject card;         //GameObject to contain card and perform game logic on
-        public SpriteRenderer r;
-        
-        public BoxCollider2D col;
-        public List<Collider2D> colResults;
-        public ContactFilter2D colFilter;
-
-
-        //Assignment Constructor
-        public Card(int s, int v, Sprite sp)
-        {
-            suit = s;
-            value = v;
-            spriteFace = sp;
-            spriteBack = Resources.Load<Sprite>("Sprites/Standard 52 Cards/solitaire/individuals/card back/card_back");
-
-            //Init the card, add a sprite renderer and set it to not active.
-            card = new GameObject(spriteFace.name);
-            r = card.AddComponent<SpriteRenderer>();
-            r.sprite = spriteBack;
-            card.transform.position = new Vector2(0, -6.0f);
-
-            col = card.AddComponent<BoxCollider2D>();
-            col.gameObject.layer = 3;
-
-            colResults = new List<Collider2D>();
-            colFilter = new ContactFilter2D();
-            colFilter.layerMask = 3;
-
-            //card.SetActive(false);
-        }
-    }
-
 
     public List<Card> deck;             //An array of card objects that will act as the deck for this game
     public DeckBuilder()
@@ -53,7 +14,7 @@ public class DeckBuilder
         deck = new List<Card>();        //Init the deck of card objects
     }
 
-
+    
     public void Build52CardDeck()
     {
         string[] values = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13" }; //Just in case we had to use symbols, this was an array to hold the card values
@@ -138,6 +99,22 @@ public class DeckBuilder
                 card.r.sprite = card.spriteFace;
             }
 
+        }
+
+    }
+
+    public void CheckClicked(ref DeckBuilder clickedCards)
+    {
+        foreach (Card card in clickedCards.deck)
+        {
+            if (card.clicked)
+            {
+                clickedCards.deck.Add(card);
+            }
+            if (clickedCards.deck.Count > 2)
+            {
+                clickedCards.deck.RemoveAt(0);
+            }
         }
 
     }

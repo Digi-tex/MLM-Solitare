@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
     public DeckBuilder boardCards;              //An list of card objects that are in play on the game board
     public DeckBuilder discardCards;            //An list of card objects that are discarded
     public DeckBuilder spentCards;              //A list of card objects that are used and removed from play
+    public DeckBuilder clickedCards;
 
     private List<Vector3> cardPositions;        //A list to hold the Vector2 locations of where the cards will be on the board
     private Vector3 deckPosition;               //Location of the deck
@@ -44,6 +45,7 @@ public class GameManager : MonoBehaviour
         boardCards = new DeckBuilder();                 //Create a list to hold the cards currently on the board in play
         discardCards = new DeckBuilder();               //Create a list to hold cards currently in the discard pile
         spentCards = new DeckBuilder();                 //Create a list to hold cards that have been matched and removed from play
+        clickedCards = new DeckBuilder();
 
         boardHolder = new GameObject("Board").transform;//Create a transform to hold all of the card game objects currenly in the boardCards list
         boardHolder.position = new Vector3(-3.3f, -3.5f, 0);
@@ -61,6 +63,8 @@ public class GameManager : MonoBehaviour
         numRows = 7;                                    //Number of rows of the pyramid
         totalCards = (numCards * (numCards + 1)) / 2;   //Calculating the total cards in the pyramid
 
+        
+
         //Create the list of card positions based on the values specified above
         for(int i = 0; i < numRows; i++)
         {
@@ -73,8 +77,6 @@ public class GameManager : MonoBehaviour
         for(int j = 0; j < drawPile.deck.Count; j++)
         {
             drawPile.deck[j].r.sortingOrder = currentLayerOrder--;
-
-            
         }
     }
     
@@ -87,7 +89,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
+    static Predicate<Card> bySprite(Sprite sprite)
+    {
+        return delegate (Card card)
+        {
+            return card.r.sprite.name == sprite.name;
+        };
+    }
 
     private void changeGameState(int i)
     {
@@ -150,6 +158,47 @@ public class GameManager : MonoBehaviour
             case 2:
                 {
                     boardCards.CheckCollision();
+
+                    boardCards.CheckClicked(ref clickedCards);
+                    discardCards.CheckClicked(ref clickedCards);
+
+                    int sumCards = 0;
+
+                    foreach(Card card in clickedCards.deck)
+                    {
+                        sumCards += card.value;
+                    }
+                    if(sumCards == 15)
+                    {
+                        changeGameState(3);
+                        cardforAnimation = 0;
+                    }
+                    break;
+                }
+            case 3:
+                {
+
+                    if (cardforAnimation >= 2)
+                    {
+                        cardforAnimation = 0;
+                        changeGameState(2);
+
+                        for (int i = 0; i < 2; i++)
+                        {
+                            spentCards.AddCard(clickedCards.deck[0]);
+                            boardCards.deck.Remove(clickedCards.deck[0]);
+                            clickedCards.RemoveCard();
+                        }
+                        break;
+                    }
+                    Card myCard = boardCards.deck.Find(bySprite(clickedCards.deck[cardforAnimation].r.sprite));
+
+                    StartCoroutine(MoveObject(myCard.card, spentPosition, velocity, 0.5f, 20));
+                    if (myCard.card.transform.position == spentPosition)
+                    {
+                        cardforAnimation++;
+                    }
+                    
                     break;
                 }
         }
