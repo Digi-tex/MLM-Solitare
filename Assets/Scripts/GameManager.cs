@@ -2,18 +2,22 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.XR;
 
 public class GameManager : MonoBehaviour
 {
     public GameObject card;
+    public GameObject drawButton;
 
     public List<GameObject> drawCards;               //The deck and subsequent draw pile for the game
     public List<GameObject> boardCards;              //An list of card objects that are in play on the game board
     public List<GameObject> discardCards;            //An list of card objects that are discarded
     public List<GameObject> spentCards;              //A list of card objects that are used and removed from play
+    public List<GameObject> clickedCards;
 
+    public int cardTotal;
 
     private List<Vector3> cardPositions;        //A list to hold the Vector2 locations of where the cards will be on the board
     private Vector3 deckPosition;               //Location of the deck
@@ -35,6 +39,8 @@ public class GameManager : MonoBehaviour
     private Vector3 velocity;
 
     private int currentLayerOrder = 0;
+    private int discardLayer = 100;
+    private int spentLayer = 100;
 
     public void Build52CardDeck()
     {
@@ -46,9 +52,9 @@ public class GameManager : MonoBehaviour
         {
             for (int j = 0; j < 13; j++)
             {
-                GameObject newCard = Instantiate(card, new Vector3(0, -6.0f, 0), Quaternion.identity);
+                GameObject newCard = Instantiate(card, deckPosition, Quaternion.identity);
                 newCard.GetComponent<Card>().suit = i;
-                newCard.GetComponent<Card>().value = j;
+                newCard.GetComponent<Card>().value = j + 1;
 
                 switch (i)
                 {
@@ -86,19 +92,24 @@ public class GameManager : MonoBehaviour
             deck[n] = deck[k];
             deck[k] = temp;
         }
+
+        foreach(GameObject card in deck)
+        {
+            card.GetComponent<SpriteRenderer>().sortingOrder = currentLayerOrder -= 1;
+        }    
     }
 
     private void initializeBoard()
     {
 
-        cardforAnimation = drawCards.Count -1;
-
         boardHolder = new GameObject("Board").transform;//Create a transform to hold all of the card game objects currenly in the boardCards list
         boardHolder.position = new Vector3(-3.3f, -3.5f, 0);
 
-        deckPosition = new Vector3(-5, 2, 0);           //Specify location of deck
-        discardPosition = new Vector3(-4, 2, 0);        //Specify location of discard pile
-        spentPosition = new Vector3(5, 2, 0);           //Specify location of spent pile  
+        deckPosition = new Vector3(-5, 0f, 0);           //Specify location of deck
+        discardPosition = new Vector3(-4, 0f, 0);        //Specify location of discard pile
+        spentPosition = new Vector3(5, 2f, 0);           //Specify location of spent pile  
+
+        cardforAnimation = 0;
 
         cardPositions = new List<Vector3>();            //Create a list that holds all of the positions of where boardCards can be played
         horStep = 1.1f;                                 //The horizontal step when laying out cards
@@ -155,9 +166,9 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     private void Start()
     {
+        initializeBoard();
         Build52CardDeck();
         ShuffleDeck(ref drawCards);
-        initializeBoard();
     }
 
     // Update is called once per frame
@@ -165,27 +176,13 @@ public class GameManager : MonoBehaviour
     {
         switch (currentState)
         {
-            //Deal the deck onto the board
-            case 0:
-                {
-                    if (cardforAnimation < 0)
-                    {
-                        cardforAnimation = 0;
-                        changeGameState(1);
-                        break;
-                    }
-                    StartCoroutine(drawCards[cardforAnimation].GetComponent<Card>().MoveObject(deckPosition, velocity, 0.2f, 120));
-                    if (drawCards[cardforAnimation].transform.position == deckPosition)
-                        cardforAnimation--;
-                    break;
-                }
             //Deal the board
-            case 1:
+            case 0:
                 {
                     if (cardforAnimation >= totalCards)
                     {
                         cardforAnimation = 0;
-                        changeGameState(2);
+                        changeGameState(1);
 
                         for (int i = 0; i < totalCards; i++)
                         {
@@ -208,55 +205,131 @@ public class GameManager : MonoBehaviour
                     break;
                 }
             //Wait for 
-            case 2:
+            case 1:
                 {
-                    
                     CheckCollision(ref boardCards);
 
-                    /*
-                    boardCards.CheckClicked(ref clickedCards);
-                    discardCards.CheckClicked(ref clickedCards);
-
-                    int sumCards = 0;
-
-                    foreach(Card card in clickedCards.deck)
+                    if (drawButton.GetComponent<ClickManager>().clicked == true)
                     {
-                        sumCards += card.value;
+                        drawButton.GetComponent<ClickManager>().clicked = false;
+
+                        drawCards[0].GetComponent<Card>().FlipCard();
+                        drawCards[0].GetComponent<SpriteRenderer>().sortingOrder = discardLayer++;
+
+                        StartCoroutine(drawCards[0].GetComponent<Card>().MoveObject(discardPosition, velocity, 0.5f, 20));
+                        discardCards.Insert(0, drawCards[0]);
+                        drawCards.RemoveAt(0);
                     }
-                    if(sumCards == 15)
-                    {
-                        changeGameState(3);
-                        cardforAnimation = 0;
-                    }
-                    */
+                    changeGameState(2);
                     break;
                 }
-            case 3:
+            case 2:
                 {
-                    /*
-                    if (cardforAnimation >= 2)
+                    foreach(GameObject card in boardCards)
                     {
-                        cardforAnimation = 0;
-                        changeGameState(2);
-
-                        for (int i = 0; i < 2; i++)
+                        if(card.GetComponent<Card>().clicked && !clickedCards.Contains(card))
                         {
-                            spentCards.AddCard(clickedCards.deck[0]);
-                            boardCards.deck.Remove(clickedCards.deck[0]);
-                            clickedCards.RemoveCard();
-                        }
-                        break;
-                    }
-                    Card myCard = boardCards.deck.Find(bySprite(clickedCards.deck[cardforAnimation].r.sprite));
+                            if (clickedCards.Count >= 2)
+                            {
+                                if (discardCards.Contains(clickedCards[0]))
+                                {
+                                    discardCards[discardCards.IndexOf(clickedCards[0])].GetComponent<Card>().clicked = false;
+                                }
+                                else
+                                    boardCards[boardCards.IndexOf(clickedCards[0])].GetComponent<Card>().clicked = false;
 
-                    StartCoroutine(MoveObject(myCard.card, spentPosition, velocity, 0.5f, 20));
-                    if (myCard.card.transform.position == spentPosition)
-                    {
-                        cardforAnimation++;
+                                clickedCards.RemoveAt(0);
+                                clickedCards.Add(card);
+                            }
+                            else
+                                clickedCards.Add(card);
+                        }
                     }
-                    */
+                    foreach (GameObject card in discardCards)
+                    {
+                        if (card.GetComponent<Card>().clicked && !clickedCards.Contains(card))
+                        {
+                            if (clickedCards.Count >= 2)
+                            {
+                                if (discardCards.Contains(clickedCards[0]))
+                                {
+                                    discardCards[discardCards.IndexOf(clickedCards[0])].GetComponent<Card>().clicked = false;
+                                }
+                                else
+                                    boardCards[boardCards.IndexOf(clickedCards[0])].GetComponent<Card>().clicked = false;
+
+                                clickedCards.RemoveAt(1);
+                                clickedCards.Add(card);
+                            }
+                            else
+                                clickedCards.Add(card);
+                        }
+                    }
+
+                    cardTotal = 0;
+
+                    foreach(GameObject card in clickedCards)
+                    {
+                        cardTotal += card.GetComponent<Card>().value;
+
+                        if(card.GetComponent<Card>().value == 13)
+                        {
+                            cardTotal = -1;
+                            break;
+                        }
+                    }
+
+                    if(cardTotal == 13)
+                    {
+                        foreach(GameObject card in clickedCards)
+                        {
+                            spentCards.Add(card);
+                            card.GetComponent<Card>().clicked = false;
+                            card.GetComponent<BoxCollider2D>().enabled = false;
+
+                            if (discardCards.Contains(card))
+                            {
+                                discardCards.RemoveAt(discardCards.IndexOf(card));
+                            }
+                            else
+                                boardCards.RemoveAt(boardCards.IndexOf(card));
+
+                            spentCards[spentCards.Count - 1].GetComponent<SpriteRenderer>().sortingOrder = spentLayer++;
+                            StartCoroutine(card.GetComponent<Card>().MoveObject(spentPosition, velocity, 0.5f, 20));
+                        }
+                        clickedCards.Clear();
+                    }
+                    else if(cardTotal == -1)
+                    {
+                        foreach(GameObject card in clickedCards)
+                        {
+                            if (card.GetComponent<Card>().value == 13)
+                            {
+                                spentCards.Add(card);
+                                card.GetComponent<Card>().clicked = false;
+                                card.GetComponent<BoxCollider2D>().enabled = false;
+
+                                if (discardCards.Contains(card))
+                                {
+                                    discardCards.RemoveAt(discardCards.IndexOf(card));
+                                }
+                                else
+                                    boardCards.RemoveAt(boardCards.IndexOf(card));
+
+                                spentCards[spentCards.Count - 1].GetComponent<SpriteRenderer>().sortingOrder = spentLayer++;
+                                StartCoroutine(card.GetComponent<Card>().MoveObject(spentPosition, velocity, 0.5f, 20));
+                            }
+                            else
+                                card.GetComponent<Card>().clicked = false;
+                        }
+
+                        clickedCards.Clear();
+                    }
+
+                    changeGameState(1);
                     break;
                 }
+
         }
     }
 }

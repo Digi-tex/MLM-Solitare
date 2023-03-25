@@ -10,6 +10,7 @@ public class Card : MonoBehaviour
     public int value;               //Value ace 1, 2-10, jack 11, queen 12, king 13
     public Sprite spriteFace;       //Sprite to hold the card face
     public Sprite spriteBack;       //Sprite to hold the card back
+    public bool clicked;
 
     public ContactFilter2D colFilter;
 
@@ -36,10 +37,20 @@ public class Card : MonoBehaviour
         }
     }
 
+    private void OnMouseDown()
+    {
+        if (this.GetComponent<SpriteRenderer>().sprite == spriteFace)
+        {
+            clicked = true;
+        }
+    }
+
     void Start()
     {
         colFilter = new ContactFilter2D();
-        colFilter.layerMask = 3;
+        //colFilter.layerMask = 3;
+        //colFilter.useLayerMask = true;
+        clicked = false;
     }
 
     // Update is called once per frame
