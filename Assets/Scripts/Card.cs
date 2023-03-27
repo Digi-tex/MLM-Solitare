@@ -10,7 +10,8 @@ public class Card : MonoBehaviour
     public int value;               //Value ace 1, 2-10, jack 11, queen 12, king 13
     public Sprite spriteFace;       //Sprite to hold the card face
     public Sprite spriteBack;       //Sprite to hold the card back
-    public bool clicked;
+    public bool clicked = false;
+    public bool inPyramid = false;
 
     public ContactFilter2D colFilter;
 
@@ -18,11 +19,12 @@ public class Card : MonoBehaviour
 
     public IEnumerator MoveObject(Vector3 end, Vector3 vel, float smoothTime, float speed)
     {
-        while (this.transform.position != end)
+        while (Mathf.Abs(this.transform.position.x - end.x) > 0.01 || Mathf.Abs(this.transform.position.y - end.y) > 0.01)
         {
             this.transform.position = Vector3.SmoothDamp(this.transform.position, end, ref vel, smoothTime, speed);
-            yield return 0;
+            yield return new WaitForEndOfFrame();
         }
+        yield return null;
     }
 
     public void FlipCard()
@@ -45,17 +47,33 @@ public class Card : MonoBehaviour
         }
     }
 
+    public void CheckCollision()
+    {
+        if(inPyramid) 
+        { 
+            if (this.GetComponent<Collider2D>().OverlapCollider(colFilter, colResults) > 2)
+            {
+                this.GetComponent<SpriteRenderer>().sprite = spriteBack;
+            }
+            else
+            {
+                this.GetComponent<SpriteRenderer>().sprite = spriteFace;
+            }
+
+        }
+
+    }
+
     void Start()
     {
         colFilter = new ContactFilter2D();
         //colFilter.layerMask = 3;
         //colFilter.useLayerMask = true;
-        clicked = false;
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        CheckCollision();
     }
 }

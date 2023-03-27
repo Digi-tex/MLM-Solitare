@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ClickManager : MonoBehaviour
 {
-    public bool clicked;
+    public bool clicked = false;
 
     private void OnMouseDown()
     {
