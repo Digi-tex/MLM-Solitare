@@ -1,20 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.U2D.Animation;
 using UnityEngine;
 
 public class ClickManager : MonoBehaviour
 {
-    public bool clicked = false;
+    public GameObject mainCamera;
+
 
     private void OnMouseDown()
     {
-        clicked = true;
+        mainCamera.GetComponent<GameManager>().dealCard();
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        clicked = false;
+
     }
 
     // Update is called once per frame
