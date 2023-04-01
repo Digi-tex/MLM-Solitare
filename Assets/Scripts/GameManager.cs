@@ -9,47 +9,47 @@ using UnityEngine.XR;
 
 public class GameManager : MonoBehaviour
 {
-    public GameObject card;
-    public GameObject drawButton;
-    public bool drawCard = false;
+    public List<GameObject> drawCards = new List<GameObject>();         //The deck and subsequent draw pile for the game
+    public List<GameObject> boardCards = new List<GameObject>();        //An list of card objects that are in play on the game board
+    public Stack<GameObject> discardCards = new Stack<GameObject>();    //An Stack of card objects that are discarded
+    public Stack<GameObject> spentCards = new Stack<GameObject>();      //A Stack of card objects that are used and removed from play
+    public Queue<GameObject> clickedCards = new Queue<GameObject>();    //A queue to hold the cards that have been clicked by the user
 
-    public List<GameObject> drawCards;               //The deck and subsequent draw pile for the game
-    public List<GameObject> boardCards;              //An list of card objects that are in play on the game board
-    public Stack<GameObject> discardCards;            //An list of card objects that are discarded
-    public Stack<GameObject> spentCards;              //A list of card objects that are used and removed from play
-    public Queue<GameObject> clickedCards;
+    public GameObject card;                     //The GameObject to hold the reference to the card prefab
+    public GameObject drawButton;               //The GameObject to hold the reference to the drawButton
 
-    public int cardTotal;
 
     private List<Vector3> cardPositions;        //A list to hold the Vector2 locations of where the cards will be on the board
     private Vector3 deckPosition;               //Location of the deck
     private Vector3 discardPosition;            //Location of the discard pile
     private Vector3 spentPosition;              //Location of the spent pile
-    private Transform boardHolder;              //A variable to store a reference to the transform of our Board object
+    private Transform boardHolder;              //A variable to store a reference to the transform of our Board object (currently unused)
 
     private float horStep;                      //Horizontal step size for locating the cards in a pyramid pattern
     private float vertStep;                     //Vertical step size for locating the cards in a pyramid pattern
-    private float offset;
+    private float offset;                       //The offset for the triangle when we move to the next row
     private int numCards;                       //Number of cards for the base level of the pyramid
     private int numRows;                        //Number of rows in the pyramid
-    private int totalCards;                     //Total cards in the pyramid
+    private int cardCount;                      //Total cards in the pyramid
 
-    private int currentState = 0;
-    private int previousState;
 
-    private int cardforAnimation;
-    private Vector3 velocity;
+    private int currentState = 0;               //State variable to control what happens in the update loop
+    private int cardforAnimation = 0;           //A counter variable to manage which card is being dealt to the board              
+    private Vector3 velocity;                   //A variable to hold the velocity return value from the moveObject function (used for nothing)
 
-    private int currentLayerOrder = 99;
-    private int discardLayer = 100;
-    private int spentLayer = 200;
+    private int currentLayerOrder = 99;         //Starting layer for the draw pile / board pile
+    private int discardLayer = 100;             //Starting layer for the discard pile
+    private int spentLayer = 200;               //Starting layer for the spent pile
 
+
+
+    //Deals a card from the drawpile to the discard pile
     public void dealCard()
     {
         clickedCards.Clear();
 
-        drawCards[0].GetComponent<Card>().FlipCard();
-        drawCards[0].GetComponent<SpriteRenderer>().sortingOrder = discardLayer++;
+        drawCards[0].GetComponent<Card>().FlipCard();                              
+        drawCards[0].GetComponent<SpriteRenderer>().sortingOrder = discardLayer++; 
 
         addToDiscard(drawCards[0]);
         drawCards.RemoveAt(0);
@@ -57,6 +57,10 @@ public class GameManager : MonoBehaviour
         StartCoroutine(discardCards.Peek().GetComponent<Card>().MoveObject(discardPosition, velocity, 0.2f, 40));
     }
 
+
+
+    //Builds a 52 card deck in order and places them into the draw pile List
+    //-Asigns suit, value, sprite for face, gameobject name, position, and layer
     private void Build52CardDeck()
     {
         string[] values = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13" }; //Just in case we had to use symbols, this was an array to hold the card values
@@ -97,18 +101,25 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
+
+    //Shuffles the List which is passed by reference
+    //-Sets the sorting order of the deck so that it properly displays in the game area
     private void ShuffleDeck(ref List<GameObject> deck)
     {
-        var rng = new System.Random();
+        var rng = new System.Random();  //Create a random number
         int n = deck.Count;
-        while (n > 1)
+
+        //While we are still parsing through the deck
+        while (n > 1)                   
         {
-            int k = rng.Next(n--);
-            GameObject temp = deck[n];
+            int k = rng.Next(n--);      //Select a random position in the deck of remaining unsorted cards          
+            GameObject temp = deck[n];  //Grab the top card @ n and swap it for a card at the randomly selected location
             deck[n] = deck[k];
             deck[k] = temp;
         }
 
+        //Setup the sorting layers so the deck displays correctly on the board
         foreach(GameObject card in deck)
         {
             card.GetComponent<SpriteRenderer>().sortingOrder = currentLayerOrder -= 1;
@@ -116,35 +127,25 @@ public class GameManager : MonoBehaviour
         }    
     }
 
+
+
+    //Initializes the game board by setting up all the locations cards will be placed
     private void initializeBoard()
     {
 
-        boardHolder = new GameObject("Board").transform;//Create a transform to hold all of the card game objects currenly in the boardCards list
-        boardHolder.position = new Vector3(-3.3f, -3.5f, 0);
+        boardHolder = new GameObject("Board").transform;        //Create a transform to hold all of the card game objects currenly in the boardCards list
+        boardHolder.position = new Vector3(-3.3f, -3.5f, 0);    //Specify the location of the board holder 
 
         
-        deckPosition = new Vector3(-5.0f, 2.0f, 0);           //Specify location of deck
-        discardPosition = new Vector3(-3.5f, 2.0f, 0);        //Specify location of discard pile
-        spentPosition = new Vector3(5.0f, 2.0f, 0);           //Specify location of spent pile  
+        deckPosition = new Vector3(-5.0f, 2.0f, 0);             //Specify location of deck
+        discardPosition = new Vector3(-3.5f, 2.0f, 0);          //Specify location of discard pile
+        spentPosition = new Vector3(5.0f, 2.0f, 0);             //Specify location of spent pile  
         
-        drawButton.transform.position = deckPosition;
-        
-        
-        cardforAnimation = 0;
 
-        cardPositions = new List<Vector3>();            //Create a list that holds all of the positions of where boardCards can be played
-        horStep = 1.1f;                                 //The horizontal step when laying out cards
-        vertStep = 1f;                                  //The vertical step when laying out cards
-        offset = horStep / 2;                           //The offset for the triangle when we move to the next row
-        numCards = 7;                                   //Number of cards at the bottom row
-        numRows = 7;                                    //Number of rows of the pyramid
-        totalCards = (numCards * (numCards + 1)) / 2;   //Calculating the total cards in the pyramid
+        drawButton.transform.position = deckPosition;           //Set the position of the draw button to the deck position (kind of unnecessary as this is set in the scene)
 
-        discardCards = new Stack<GameObject>();
-        spentCards = new Stack<GameObject>();
-        clickedCards = new Queue<GameObject>();
 
-        //Create the list of card positions based on the values specified above
+        //Create the list of card positions for the pyramid based on the values specified above
         for(int i = 0; i < numRows; i++)
         {
             for(int j = 0; j < numCards - i; j++) 
@@ -154,14 +155,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
+
+    //Deals the cards from the draw pile onto the board as a pyramid of cards
     private void dealBoard()
     {
-        if (cardforAnimation >= totalCards)
+        //If we have animated all of the cards for the pyramid, 
+        if (cardforAnimation >= cardCount)
         {
             cardforAnimation = 0;
-            changeGameState(1);
+            currentState = 1;
 
-            for (int i = 0; i < totalCards; i++)
+            for (int i = 0; i < cardCount; i++)
             {
                 GameObject temp = drawCards[0];
                 temp.GetComponent<Card>().inPyramid = true;
@@ -181,12 +186,6 @@ public class GameManager : MonoBehaviour
             }
             cardforAnimation++;
         }
-    }
-
-    private void changeGameState(int i)
-    {
-        previousState = currentState;
-        currentState = i;
     }
 
     private void addToDiscard(GameObject card)
@@ -242,11 +241,11 @@ public class GameManager : MonoBehaviour
                     dealBoard();
                     break;
                 }
-
+            //Play the game
             case 1:
                 {
 
-                    cardTotal = 0;
+                    int cardSum = 0;
 
                     if (clickedCards.Count != 0)
                     {
@@ -270,15 +269,15 @@ public class GameManager : MonoBehaviour
                                 StartCoroutine(spentCards.Peek().GetComponent<Card>().MoveObject(spentPosition, velocity, 0.5f, 20));
                                 
                                 clickedCards.Clear();
-                                cardTotal = 0;
+                                cardSum = 0;
 
                                 break;
                             }
                             else
-                                cardTotal += card.GetComponent<Card>().value;
+                                cardSum += card.GetComponent<Card>().value;
                         }
 
-                        if (cardTotal == 13)
+                        if (cardSum == 13)
                         {
                             foreach (GameObject card in clickedCards)
                             {
