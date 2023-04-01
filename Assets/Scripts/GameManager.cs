@@ -13,7 +13,7 @@ public class GameManager : MonoBehaviour
 
     public List<GameObject> drawCards;               //The deck and subsequent draw pile for the game
     public List<GameObject> boardCards;              //An list of card objects that are in play on the game board
-    public List<GameObject> discardCards;            //An list of card objects that are discarded
+    public Stack<GameObject> discardCards;            //An list of card objects that are discarded
     public List<GameObject> spentCards;              //A list of card objects that are used and removed from play
     public List<GameObject> clickedCards;
 
@@ -147,6 +147,31 @@ public class GameManager : MonoBehaviour
     {
         previousState = currentState;
         currentState = i;
+    }
+
+    private void addToDiscard(GameObject card)
+    {
+        if(discardCards != null)
+        {
+            discardCards.Peek().GetComponent<BoxCollider2D>().enabled = false;
+            discardCards.Push(card);
+            discardCards.Peek().GetComponent<BoxCollider2D>().enabled = true;
+        }
+    }
+    private GameObject removeFromDiscard()
+    {
+        if (discardCards != null)
+        {
+            GameObject tempCard = discardCards.Pop();
+            tempCard.GetComponent<BoxCollider2D>().enabled = false;
+
+            discardCards.Peek().GetComponent<BoxCollider2D>().enabled = true;
+            return tempCard;
+        }
+        else
+        {
+            return null;
+        }
     }
 
 
