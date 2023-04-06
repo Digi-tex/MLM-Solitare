@@ -54,7 +54,7 @@ public class GameManager : MonoBehaviour
         addToDiscard(drawCards[0]);
         drawCards.RemoveAt(0);
 
-        StartCoroutine(discardCards.Peek().GetComponent<Card>().MoveObject(discardPosition, velocity, 0.2f, 40));
+        StartCoroutine(discardCards.Peek().GetComponent<Card>().MoveObject(discardPosition, velocity, 0.5f, 20));
     }
 
     private void Build52CardDeck()
@@ -171,7 +171,7 @@ public class GameManager : MonoBehaviour
             }
             return;
         }
-        StartCoroutine(drawCards[cardforAnimation].GetComponent<Card>().MoveObject(cardPositions[cardforAnimation], velocity, 0.5f, 20));
+        StartCoroutine(drawCards[cardforAnimation].GetComponent<Card>().MoveObject(cardPositions[cardforAnimation], velocity, 0.5f, 40));
 
         if (!(Mathf.Abs(drawCards[cardforAnimation].transform.position.x - cardPositions[cardforAnimation].x) > 0.1 || Mathf.Abs(drawCards[cardforAnimation].transform.position.y - cardPositions[cardforAnimation].y) > 0.1))
         {
