@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     public GameObject card;
     public GameObject drawButton;
     public GameObject endScreen;
+    public GameObject winScreen;
     public bool drawCard = false;
 
     public List<GameObject> drawCards;               //The deck and subsequent draw pile for the game
@@ -331,12 +332,18 @@ public class GameManager : MonoBehaviour
                         }
                     }
 
-                    if(drawCards.Count == 0 && !checkMatches())
+                    if(drawCards.Count == 0 && !checkMatches() && boardCards.Count != 0)
                     {
                         endScreen.SetActive(true);
                     }
+                    else if(boardCards.Count == 0)
+                    {
+                        winScreen.SetActive(true);
+                    }
 
                     break;
+
+
                 }
 
         }
