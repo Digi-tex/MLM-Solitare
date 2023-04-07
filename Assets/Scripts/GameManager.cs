@@ -26,7 +26,6 @@ public class GameManager : MonoBehaviour
     private Vector3 deckPosition;               //Location of the deck
     private Vector3 discardPosition;            //Location of the discard pile
     private Vector3 spentPosition;              //Location of the spent pile
-    private Transform boardHolder;              //A variable to store a reference to the transform of our Board object
 
     private float horStep;                      //Horizontal step size for locating the cards in a pyramid pattern
     private float vertStep;                     //Vertical step size for locating the cards in a pyramid pattern
@@ -38,7 +37,6 @@ public class GameManager : MonoBehaviour
     private int currentState = 0;               //Keeps the current state in the update loop
 
     private int cardforAnimation;               //A counter used to deal out the deck to the board
-    private Vector3 velocity;
 
     private int currentLayerOrder = 99;         //The starting layer used for the draw deck and board cards
     private int discardLayer = 100;             //The starting layer used for the discard pile
@@ -147,19 +145,11 @@ public class GameManager : MonoBehaviour
     //Setup the board variables, locations for cards, and add these locations to an easy to use list
     private void initializeBoard()
     {
-
-        //boardHolder = new GameObject("Board").transform;        //Create a transform to hold all of the card game objects currenly in the boardCards list
-        //boardHolder.position = new Vector3(-3.3f, -3.5f, 0);
-
         
-        deckPosition = new Vector3(-5.0f, 2.0f, 0);           //Specify location of deck
-        discardPosition = new Vector3(-3.5f, 2.0f, 0);        //Specify location of discard pile
-        spentPosition = new Vector3(5.0f, 2.0f, 0);           //Specify location of spent pile  
-        
-        drawButton.transform.position = deckPosition;
-        
-        
-        cardforAnimation = 0;
+        deckPosition = new Vector3(-5.0f, 2.0f, 0);     //Specify location of deck
+        discardPosition = new Vector3(-3.5f, 2.0f, 0);  //Specify location of discard pile
+        spentPosition = new Vector3(5.0f, 2.0f, 0);     //Specify location of spent pile  
+        drawButton.transform.position = deckPosition;   //Set the draw button to the location of the draw pile    
 
         cardPositions = new List<Vector3>();            //Create a list that holds all of the positions of where boardCards can be played
         horStep = 1.1f;                                 //The horizontal step when laying out cards
@@ -169,7 +159,8 @@ public class GameManager : MonoBehaviour
         numRows = 7;                                    //Number of rows of the pyramid
         totalCards = (numCards * (numCards + 1)) / 2;   //Calculating the total cards in the pyramid
 
-        discardCards = new Stack<GameObject>();
+        //Initialize the various card piles/lists
+        discardCards = new Stack<GameObject>();         
         spentCards = new Stack<GameObject>();
         clickedCards = new Queue<GameObject>();
 
@@ -183,25 +174,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
+
+    //Deal the cards from the draw pile onto the board in the positions created for the pyramid in initializeBoard()
     private void dealBoard()
     {
-        if (cardforAnimation >= totalCards)
-        {
-            cardforAnimation = 0;
-            changeGameState(1);
-
-            for (int i = 0; i < totalCards; i++)
-            {
-                GameObject temp = drawCards[0];
-                temp.GetComponent<Card>().inPyramid = true;
-                temp.GetComponent<BoxCollider2D>().enabled = true;
-                boardCards.Add(temp);
-                drawCards.RemoveAt(0);
-            }
-            return;
-        }
+        //Move the cards physically from the draw pile location to the specific location in the pyramid
         drawCards[cardforAnimation].GetComponent<Card>().MoveObject(cardPositions[cardforAnimation]);
 
+        //If the card has made it to the position in the pyramid, flip the card if its of the bottom row, and then move to the next card
         if (!(Mathf.Abs(drawCards[cardforAnimation].transform.position.x - cardPositions[cardforAnimation].x) > 0.1 || Mathf.Abs(drawCards[cardforAnimation].transform.position.y - cardPositions[cardforAnimation].y) > 0.1))
         {
             if (cardforAnimation < 7)
@@ -210,11 +191,31 @@ public class GameManager : MonoBehaviour
             }
             cardforAnimation++;
         }
+
+        //If we have moved all of the cards in the pyramid, change the game state
+        //Transfer the cards into the board pile from the draw pile
+        if (cardforAnimation >= totalCards)
+        {
+            cardforAnimation = 0;
+            changeGameState(1);
+
+            //Move the card out of the draw pile, turn on collision, and put it into the board pile
+            for (int i = 0; i < totalCards; i++)
+            {
+                GameObject temp = drawCards[0];
+                temp.GetComponent<Card>().inPyramid = true;
+                temp.GetComponent<BoxCollider2D>().enabled = true;
+                boardCards.Add(temp);
+                drawCards.RemoveAt(0);
+            }
+        }
     }
+
+
+
 
     private void changeGameState(int i)
     {
-        //previousState = currentState;
         currentState = i;
     }
 
