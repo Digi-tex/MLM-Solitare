@@ -9,19 +9,18 @@ using UnityEngine.XR;
 
 public class GameManager : MonoBehaviour
 {
-    public GameObject card;
-    public GameObject drawButton;
-    public GameObject endScreen;
-    public GameObject winScreen;
-    public bool drawCard = false;
+    public GameObject card;                     //The card prefab
+    public GameObject drawButton;               //The button used to draw cards from the deck 
+    public GameObject endScreen;                //The end screen UI
+    public GameObject winScreen;                //The win screen UI
 
-    public List<GameObject> drawCards;               //The deck and subsequent draw pile for the game
-    public List<GameObject> boardCards;              //An list of card objects that are in play on the game board
-    public Stack<GameObject> discardCards;            //An list of card objects that are discarded
-    public Stack<GameObject> spentCards;              //A list of card objects that are used and removed from play
-    public Queue<GameObject> clickedCards;
+    public List<GameObject> drawCards;          //The deck and subsequent draw pile for the game
+    public List<GameObject> boardCards;         //An list of card objects that are in play on the game board
+    public Stack<GameObject> discardCards;      //An stack of card objects that are discarded
+    public Stack<GameObject> spentCards;        //A stack of card objects that are used and removed from play
+    public Queue<GameObject> clickedCards;      //A queue to hold all the cards that have been clicked by the user
 
-    public int cardTotal;
+    public int cardTotal;                       //Used to sum the clicked card to determine if they add up to 13
 
     private List<Vector3> cardPositions;        //A list to hold the Vector2 locations of where the cards will be on the board
     private Vector3 deckPosition;               //Location of the deck
@@ -31,40 +30,49 @@ public class GameManager : MonoBehaviour
 
     private float horStep;                      //Horizontal step size for locating the cards in a pyramid pattern
     private float vertStep;                     //Vertical step size for locating the cards in a pyramid pattern
-    private float offset;
+    private float offset;                       //Distance each row is offset for the next level of the pyramid
     private int numCards;                       //Number of cards for the base level of the pyramid
     private int numRows;                        //Number of rows in the pyramid
     private int totalCards;                     //Total cards in the pyramid
 
-    private int currentState = 0;
-    private int previousState;
+    private int currentState = 0;               //Keeps the current state in the update loop
 
-    private int cardforAnimation;
+    private int cardforAnimation;               //A counter used to deal out the deck to the board
     private Vector3 velocity;
 
-    private int currentLayerOrder = 99;
-    private int discardLayer = 100;
-    private int spentLayer = 200;
+    private int currentLayerOrder = 99;         //The starting layer used for the draw deck and board cards
+    private int discardLayer = 100;             //The starting layer used for the discard pile
+    private int spentLayer = 200;               //The starting layer used for the spent pile
 
+
+
+    //Deal a single card from the draw pile to the discard pile
     public void dealCard()
     {
         clickedCards.Clear();
 
         if (drawCards.Count > 0)
         {
+            //Flip the card and change its sorting order
             drawCards[0].GetComponent<Card>().FlipCard();
             drawCards[0].GetComponent<SpriteRenderer>().sortingOrder = discardLayer++;
 
+            //Remove the card from the draw pile and add it to the discard
             addToDiscard(drawCards[0]);
             drawCards.RemoveAt(0);
 
+            //Move the card physically to the discard location
             discardCards.Peek().GetComponent<Card>().MoveObject(discardPosition);
         }
     }
 
+
+
+    //Build a 52 card deck inside the drawCards list with each card having a unique suit and value
     private void Build52CardDeck()
     {
-        string[] values = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13" }; //Just in case we had to use symbols, this was an array to hold the card values
+        //Just in case we had to use symbols, this was an array to hold the card values
+        string[] values = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13" };
 
         //Loop through and create the deck of cards. 
         //Depending on the suit denoted by the first for loop, we grab the card faces from different folders
@@ -72,11 +80,14 @@ public class GameManager : MonoBehaviour
         {
             for (int j = 0; j < 13; j++)
             {
+                //Instantiate the card game object, set the camera so the card can add itself to the lists of the game manager script
+                //Set the suit and value
                 GameObject newCard = Instantiate(card, deckPosition, Quaternion.identity);
                 newCard.GetComponent<Card>().mainCamera = this.gameObject;
                 newCard.GetComponent<Card>().suit = i;
                 newCard.GetComponent<Card>().value = j + 1;
 
+                //Depending on suit, choose the sprite from the correct folder
                 switch (i)
                 {
                     case 0:
@@ -93,6 +104,8 @@ public class GameManager : MonoBehaviour
                         break;
                 }
 
+                //Set the sprite on display for the card as the back (face down),
+                //set the name to the name of the face-up sprite, set the collision layer, add the card to the draw pile
                 newCard.GetComponent<SpriteRenderer>().sprite = newCard.GetComponent<Card>().spriteBack;
                 newCard.name = newCard.GetComponent<Card>().spriteFace.name;
                 newCard.layer = 3;
@@ -102,10 +115,17 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
+
+    //Shuffle a deck of cards in a random order
     private void ShuffleDeck(ref List<GameObject> deck)
     {
+        //Create a new random variable
         var rng = new System.Random();
         int n = deck.Count;
+        
+        //While we progress through the list, starting at the end and incrementing towards the beginning
+        //Select a random value between 0 and n and swap locations with the n element
         while (n > 1)
         {
             int k = rng.Next(n--);
@@ -114,6 +134,7 @@ public class GameManager : MonoBehaviour
             deck[k] = temp;
         }
 
+        //With the deck shuffled, set the correct layer order for each card and disable the collider
         foreach(GameObject card in deck)
         {
             card.GetComponent<SpriteRenderer>().sortingOrder = currentLayerOrder -= 1;
@@ -121,11 +142,14 @@ public class GameManager : MonoBehaviour
         }    
     }
 
+
+
+    //Setup the board variables, locations for cards, and add these locations to an easy to use list
     private void initializeBoard()
     {
 
-        boardHolder = new GameObject("Board").transform;//Create a transform to hold all of the card game objects currenly in the boardCards list
-        boardHolder.position = new Vector3(-3.3f, -3.5f, 0);
+        //boardHolder = new GameObject("Board").transform;        //Create a transform to hold all of the card game objects currenly in the boardCards list
+        //boardHolder.position = new Vector3(-3.3f, -3.5f, 0);
 
         
         deckPosition = new Vector3(-5.0f, 2.0f, 0);           //Specify location of deck
@@ -190,7 +214,7 @@ public class GameManager : MonoBehaviour
 
     private void changeGameState(int i)
     {
-        previousState = currentState;
+        //previousState = currentState;
         currentState = i;
     }
 
