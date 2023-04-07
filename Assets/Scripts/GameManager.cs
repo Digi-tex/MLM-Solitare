@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
 {
     public GameObject card;
     public GameObject drawButton;
+    public GameObject endScreen;
     public bool drawCard = false;
 
     public List<GameObject> drawCards;               //The deck and subsequent draw pile for the game
@@ -48,13 +49,16 @@ public class GameManager : MonoBehaviour
     {
         clickedCards.Clear();
 
-        drawCards[0].GetComponent<Card>().FlipCard();
-        drawCards[0].GetComponent<SpriteRenderer>().sortingOrder = discardLayer++;
+        if (drawCards.Count > 0)
+        {
+            drawCards[0].GetComponent<Card>().FlipCard();
+            drawCards[0].GetComponent<SpriteRenderer>().sortingOrder = discardLayer++;
 
-        addToDiscard(drawCards[0]);
-        drawCards.RemoveAt(0);
+            addToDiscard(drawCards[0]);
+            drawCards.RemoveAt(0);
 
-        StartCoroutine(discardCards.Peek().GetComponent<Card>().MoveObject(discardPosition, velocity, 0.5f, 20));
+            discardCards.Peek().GetComponent<Card>().MoveObject(discardPosition);
+        }
     }
 
     private void Build52CardDeck()
@@ -171,7 +175,7 @@ public class GameManager : MonoBehaviour
             }
             return;
         }
-        StartCoroutine(drawCards[cardforAnimation].GetComponent<Card>().MoveObject(cardPositions[cardforAnimation], velocity, 0.5f, 40));
+        drawCards[cardforAnimation].GetComponent<Card>().MoveObject(cardPositions[cardforAnimation]);
 
         if (!(Mathf.Abs(drawCards[cardforAnimation].transform.position.x - cardPositions[cardforAnimation].x) > 0.1 || Mathf.Abs(drawCards[cardforAnimation].transform.position.y - cardPositions[cardforAnimation].y) > 0.1))
         {
@@ -221,7 +225,34 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
+    private bool checkMatches()
+    {
+        foreach(GameObject firstCard in boardCards)
+        {
+            if(firstCard.GetComponent<SpriteRenderer>().sprite != firstCard.GetComponent<Card>().spriteBack)
+            {
+                foreach(GameObject secondCard in boardCards)
+                {
+                    if(firstCard.GetComponent<Card>().value + secondCard.GetComponent<Card>().value == 13 &&
+                       secondCard.GetComponent<SpriteRenderer>().sprite != secondCard.GetComponent<Card>().spriteBack)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        foreach (GameObject firstCard in boardCards)
+        {
+            if (firstCard.GetComponent<SpriteRenderer>().sprite != firstCard.GetComponent<Card>().spriteBack)
+            {
+                if (firstCard.GetComponent<Card>().value + discardCards.Peek().GetComponent<Card>().value == 13)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     // Start is called before the first frame update
     private void Start()
@@ -267,7 +298,7 @@ public class GameManager : MonoBehaviour
                                 else
                                     boardCards.RemoveAt(boardCards.IndexOf(card));
 
-                                StartCoroutine(spentCards.Peek().GetComponent<Card>().MoveObject(spentPosition, velocity, 0.5f, 20));
+                                spentCards.Peek().GetComponent<Card>().MoveObject(spentPosition);
                                 
                                 clickedCards.Clear();
                                 cardTotal = 0;
@@ -294,11 +325,17 @@ public class GameManager : MonoBehaviour
                                 else
                                     boardCards.RemoveAt(boardCards.IndexOf(card));
 
-                                StartCoroutine(spentCards.Peek().GetComponent<Card>().MoveObject(spentPosition, velocity, 0.5f, 20));
+                                spentCards.Peek().GetComponent<Card>().MoveObject(spentPosition);
                             }
                             clickedCards.Clear();
                         }
                     }
+
+                    if(drawCards.Count == 0 && !checkMatches())
+                    {
+                        endScreen.SetActive(true);
+                    }
+
                     break;
                 }
 

@@ -20,11 +20,19 @@ public class Card : MonoBehaviour
 
     public Collider2D[] colResults = new Collider2D[100];
 
-    public IEnumerator MoveObject(Vector3 end, Vector3 vel, float smoothTime, float speed)
+    private Vector3 vel;
+
+    public void MoveObject(Vector3 location)
+    {
+        StopAllCoroutines();
+        StartCoroutine(SmoothMove(location));
+    }
+
+    private IEnumerator SmoothMove(Vector3 end)
     {
         while (Mathf.Abs(this.transform.position.x - end.x) > 0.01 || Mathf.Abs(this.transform.position.y - end.y) > 0.01)
         {
-            this.transform.position = Vector3.SmoothDamp(this.transform.position, end, ref vel, smoothTime, speed);
+            this.transform.position = Vector3.SmoothDamp(this.transform.position, end, ref vel, 0.1f, 50);
             yield return new WaitForEndOfFrame();
         }
         yield return null;
