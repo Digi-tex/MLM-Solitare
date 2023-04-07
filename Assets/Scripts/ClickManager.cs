@@ -1,13 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
-//using UnityEditor.U2D.Animation;
 using UnityEngine;
 
 public class ClickManager : MonoBehaviour
 {
     public GameObject mainCamera;
 
-
+    //Deal a card from the game managers draw pile when this button is clicked. 
     private void OnMouseDown()
     {
         mainCamera.GetComponent<GameManager>().dealCard();
