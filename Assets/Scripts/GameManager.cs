@@ -213,52 +213,77 @@ public class GameManager : MonoBehaviour
 
 
 
-
+    //Change the gamestate - this is silly and used to be from previous code that did more here. Leaving it in for ease of coding
     private void changeGameState(int i)
     {
         currentState = i;
     }
 
+
+
+    //Adds a card from to the discard pile and sets the collision accordingly
+    //Only the top card of the pile is to have collision to assist with click registering
     private void addToDiscard(GameObject card)
     {
+        //If the discard pile isn't empty, set the previously top card to have no collision
+        //Set the new top card to have collision instead
         if(discardCards.Count != 0)
         {
             discardCards.Peek().GetComponent<BoxCollider2D>().enabled = false;
             discardCards.Push(card);
             discardCards.Peek().GetComponent<BoxCollider2D>().enabled = true;
         }
+        //If the pile is empty, just add the card and enable collision
         else
         {
             discardCards.Push(card);
             discardCards.Peek().GetComponent<BoxCollider2D>().enabled = true;
         }
     }
+
+
+
+    //Removes the card from the discard and sets the collision accordingly.
+    //Only the top card of the pile is to have collision to assist with click registering
     private GameObject removeFromDiscard()
     {
+        //If the discard pile isn't empty, remove the card and modify collision
         if (discardCards.Count != 0)
         {
             GameObject tempCard = discardCards.Pop();
             tempCard.GetComponent<BoxCollider2D>().enabled = false;
 
+            //If after removing the card, there are still cards in the discard, set the top card to have collision
             if(discardCards.Count != 0)
                 discardCards.Peek().GetComponent<BoxCollider2D>().enabled = true;
 
+            //Return the card removed from the discard pile
             return tempCard;
         }
+        //If no cards are in the discard, return nothing
         else
         {
             return null;
         }
     }
 
+
+
+    //Check to see if any of the cards currently displayed to the player can form a match to 13
+    //AKA the player still has matches to make and has not won or lost yet
     private bool checkMatches()
     {
+        //For each card in board cards, check against the other cards and return true if any sum to 13
+        //This method technically sums cards with itself but thats okay as no card summed with itself will add to 13
         foreach(GameObject firstCard in boardCards)
         {
+            //Only check cards if they are face-up
             if(firstCard.GetComponent<SpriteRenderer>().sprite != firstCard.GetComponent<Card>().spriteBack)
             {
+                //Compare the selected card to each card in the pile 
                 foreach(GameObject secondCard in boardCards)
                 {
+                    //If the cards equal 13 and the second card is face-up, return true
                     if(firstCard.GetComponent<Card>().value + secondCard.GetComponent<Card>().value == 13 &&
                        secondCard.GetComponent<SpriteRenderer>().sprite != secondCard.GetComponent<Card>().spriteBack)
                     {
@@ -267,20 +292,28 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
-        foreach (GameObject firstCard in boardCards)
+
+        //Compare the top card in the discard pile, if there are any, against the board pile to see if there are any matches
+        if (discardCards.Count > 0)
         {
-            if (firstCard.GetComponent<SpriteRenderer>().sprite != firstCard.GetComponent<Card>().spriteBack)
+            foreach (GameObject firstCard in boardCards)
             {
-                if (firstCard.GetComponent<Card>().value + discardCards.Peek().GetComponent<Card>().value == 13)
+                if (firstCard.GetComponent<SpriteRenderer>().sprite != firstCard.GetComponent<Card>().spriteBack)
                 {
-                    return true;
+                    if (firstCard.GetComponent<Card>().value + discardCards.Peek().GetComponent<Card>().value == 13)
+                    {
+                        return true;
+                    }
                 }
             }
         }
+
+        //Return false as the default
         return false;
     }
 
-    // Start is called before the first frame update
+
+    //Start the game
     private void Start()
     {
         initializeBoard();
@@ -288,28 +321,33 @@ public class GameManager : MonoBehaviour
         ShuffleDeck(ref drawCards);
     }
 
-    // Update is called once per frame
+
+
+    // either deal the pyramid or play the game based on the state selected
     void Update()
     {
         switch (currentState)
         {
-            //Deal the board
+            //Deal the pyramid onto the board
             case 0:
                 {
                     dealBoard();
                     break;
                 }
-
+            
+            //Play the game
             case 1:
                 {
-
+                    //Set cardTotal to zero each time we start a new loop
                     cardTotal = 0;
 
+                    //If there cards that have been clicked, sum them and check for a total of 13 or if one of the cards (a king) equals 13
                     if (clickedCards.Count != 0)
                     {
+                        //For each card in clicked cards, add to the sum
                         foreach (GameObject card in clickedCards)
                         {
-
+                            //Check to see if the card is a king, if so, turn off collision and move the card to the spent pile logically and physically
                             if (card.GetComponent<Card>().value == 13)
                             {
                                 spentCards.Push(card);
@@ -326,17 +364,21 @@ public class GameManager : MonoBehaviour
 
                                 spentCards.Peek().GetComponent<Card>().MoveObject(spentPosition);
                                 
+                                //clear the clicked cards list and reset the summing value
                                 clickedCards.Clear();
                                 cardTotal = 0;
 
                                 break;
                             }
+                            //If it doesn't equal 13, add it to the summed value
                             else
                                 cardTotal += card.GetComponent<Card>().value;
                         }
 
+                        //If the sum of the clicked cards equals 13, move both cards to the spent pile both logically and physically
                         if (cardTotal == 13)
                         {
+                            //For each card in clicked cards, turn off collision and move the card
                             foreach (GameObject card in clickedCards)
                             {
                                 spentCards.Push(card);
@@ -353,22 +395,26 @@ public class GameManager : MonoBehaviour
 
                                 spentCards.Peek().GetComponent<Card>().MoveObject(spentPosition);
                             }
+
+                            //Clear the clicked cards list
                             clickedCards.Clear();
+                            cardTotal = 0;
                         }
                     }
 
+                    //Check to see if the game has been either lost or won
+                    //To lose, there must be no matches and the draw pile must be empty but there must be cards in the pyramid
                     if(drawCards.Count == 0 && !checkMatches() && boardCards.Count != 0)
                     {
                         endScreen.SetActive(true);
                     }
+                    //To win, the pyramid must be empty
                     else if(boardCards.Count == 0)
                     {
                         winScreen.SetActive(true);
                     }
 
                     break;
-
-
                 }
 
         }
