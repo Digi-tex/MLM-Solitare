@@ -283,11 +283,17 @@ public class GameManager : MonoBehaviour
                 //Compare the selected card to each card in the pile 
                 foreach(GameObject secondCard in boardCards)
                 {
-                    //If the cards equal 13 and the second card is face-up, return true
-                    if(firstCard.GetComponent<Card>().value + secondCard.GetComponent<Card>().value == 13 &&
-                       secondCard.GetComponent<SpriteRenderer>().sprite != secondCard.GetComponent<Card>().spriteBack)
+                    if (secondCard.GetComponent<SpriteRenderer>().sprite != secondCard.GetComponent<Card>().spriteBack)
                     {
-                        return true;
+                        //If a card in the boardCards pile is a king, return true
+                        if (secondCard.GetComponent<Card>().value == 13)
+                            return true;
+
+                        //If the cards equal 13 and the second card is face-up, return true
+                        if (firstCard.GetComponent<Card>().value + secondCard.GetComponent<Card>().value == 13)
+                        {
+                            return true;
+                        }
                     }
                 }
             }
@@ -296,6 +302,10 @@ public class GameManager : MonoBehaviour
         //Compare the top card in the discard pile, if there are any, against the board pile to see if there are any matches
         if (discardCards.Count > 0)
         {
+            //If the top discardCard is a king, return true
+            if(discardCards.Peek().GetComponent<Card>().value == 13)
+                return true;
+
             foreach (GameObject firstCard in boardCards)
             {
                 if (firstCard.GetComponent<SpriteRenderer>().sprite != firstCard.GetComponent<Card>().spriteBack)
@@ -404,7 +414,9 @@ public class GameManager : MonoBehaviour
 
                     //Check to see if the game has been either lost or won
                     //To lose, there must be no matches and the draw pile must be empty but there must be cards in the pyramid
-                    if(drawCards.Count == 0 && !checkMatches() && boardCards.Count != 0)
+                    if(drawCards.Count == 0 && 
+                       !checkMatches() && 
+                       boardCards.Count != 0)
                     {
                         endScreen.SetActive(true);
                     }
