@@ -5,7 +5,8 @@ using UnityEngine;
 public class Card : MonoBehaviour
 {
     public GameObject mainCamera;   //A reference to the main camera that holds the game manager script so that each card can modify the game params
-
+    //private AudioSource selectCard;
+        
     public int suit;                //Club 0 , diamond 1, heart 2, spade 3
     public int value;               //Value ace 1, 2-10, jack 11, queen 12, king 13
     public Sprite spriteFace;       //Sprite to hold the card face
@@ -64,6 +65,7 @@ public class Card : MonoBehaviour
     {
         if (this.GetComponent<SpriteRenderer>().sprite == spriteFace)
         {
+            this.GetComponent<AudioSource>().Play();    
             mainCamera.GetComponent<GameManager>().clickedCards.Enqueue(this.gameObject);
 
             if(mainCamera.GetComponent<GameManager>().clickedCards.Count > 2)

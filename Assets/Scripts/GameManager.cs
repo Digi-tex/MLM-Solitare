@@ -14,6 +14,9 @@ public class GameManager : MonoBehaviour
     public GameObject endScreen;                //The end screen UI
     public GameObject winScreen;                //The win screen UI
 
+    public AudioClip flipCard;
+    public AudioClip matchSuccess;
+
     public List<GameObject> drawCards;          //The deck and subsequent draw pile for the game
     public List<GameObject> boardCards;         //An list of card objects that are in play on the game board
     public Stack<GameObject> discardCards;      //An stack of card objects that are discarded
@@ -190,6 +193,7 @@ public class GameManager : MonoBehaviour
                 drawCards[cardforAnimation].GetComponent<Card>().FlipCard();
             }
             cardforAnimation++;
+            this.GetComponent<AudioSource>().PlayOneShot(flipCard);
         }
 
         //If we have moved all of the cards in the pyramid, change the game state
@@ -360,6 +364,7 @@ public class GameManager : MonoBehaviour
                             //Check to see if the card is a king, if so, turn off collision and move the card to the spent pile logically and physically
                             if (card.GetComponent<Card>().value == 13)
                             {
+                                this.GetComponent<AudioSource>().PlayOneShot(matchSuccess);
                                 spentCards.Push(card);
 
                                 card.GetComponent<BoxCollider2D>().enabled = false;
@@ -388,6 +393,8 @@ public class GameManager : MonoBehaviour
                         //If the sum of the clicked cards equals 13, move both cards to the spent pile both logically and physically
                         if (cardTotal == 13)
                         {
+                            this.GetComponent<AudioSource>().PlayOneShot(matchSuccess);
+
                             //For each card in clicked cards, turn off collision and move the card
                             foreach (GameObject card in clickedCards)
                             {
