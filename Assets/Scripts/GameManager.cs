@@ -328,7 +328,7 @@ public class GameManager : MonoBehaviour
 
 
     //Start the game
-    private void Start()
+    void Start()
     {
         initializeBoard();
         Build52CardDeck();
