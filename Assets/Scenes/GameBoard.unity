@@ -960,6 +960,8 @@ MonoBehaviour:
   winScreen: {fileID: 1881757766}
   flipCard: {fileID: 8300000, guid: 508a6195f8adb9a4794251b9d815ed16, type: 3}
   matchSuccess: {fileID: 8300000, guid: d6c573b14edfdf64895dff78f8381d83, type: 3}
+  gameOver: {fileID: 8300000, guid: e39ee41a177878d4c81a4068dc50e1e7, type: 3}
+  winGame: {fileID: 8300000, guid: f29d026fda10e6e4fa5da5c8bef4da7a, type: 3}
   drawCards: []
   boardCards: []
   cardTotal: 0
@@ -1767,7 +1769,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: c36bbb655549d0044a16ac25c2a345b2, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 431399b2385dfbb46abc3ecd5cded9db, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1

@@ -16,6 +16,8 @@ public class GameManager : MonoBehaviour
 
     public AudioClip flipCard;
     public AudioClip matchSuccess;
+    public AudioClip gameOver;
+    public AudioClip winGame;
 
     public List<GameObject> drawCards;          //The deck and subsequent draw pile for the game
     public List<GameObject> boardCards;         //An list of card objects that are in play on the game board
@@ -423,13 +425,16 @@ public class GameManager : MonoBehaviour
                     //To lose, there must be no matches and the draw pile must be empty but there must be cards in the pyramid
                     if(drawCards.Count == 0 && 
                        !checkMatches() && 
-                       boardCards.Count != 0)
+                       boardCards.Count != 0 &&
+                       endScreen.activeSelf == false)
                     {
+                        this.GetComponent<AudioSource>().PlayOneShot(gameOver);
                         endScreen.SetActive(true);
                     }
                     //To win, the pyramid must be empty
-                    else if(boardCards.Count == 0)
+                    else if(boardCards.Count == 0 && winScreen.activeSelf == false)
                     {
+                        this.GetComponent<AudioSource>().PlayOneShot(winGame);
                         winScreen.SetActive(true);
                     }
 
